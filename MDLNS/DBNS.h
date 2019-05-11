@@ -19,7 +19,8 @@ public:
 	double getBase();
 	void setBase(double base);
 	double convert();
-
+	std::map<std::tuple<int, int>, std::tuple<int, int>> getTablePlus();
+	std::map<std::tuple<int, int>, std::tuple<int, int>> getTableMinus();
 private:
 	double base;
 	FiniteLengthInt<nbits> a, b;
@@ -91,6 +92,18 @@ double DBNS<nbits>::convert()
 	return std::pow(2, this->a.getVal())* std::pow(this->base, this->b.getVal());
 }
 
+template<unsigned nbits>
+inline std::map<std::tuple<int, int>, std::tuple<int, int>> DBNS<nbits>::getTablePlus()
+{
+	return this->tablePlus;
+}
+
+template<unsigned nbits>
+inline std::map<std::tuple<int, int>, std::tuple<int, int>> DBNS<nbits>::getTableMinus()
+{
+	return this->tableMinus;
+}
+
 template <unsigned nbits>
 static void DBNS<nbits>::setupTables()
 {
@@ -129,3 +142,4 @@ static void DBNS<nbits>::setupTables()
 }
 
 void testConvert();
+void testSetuTable();
