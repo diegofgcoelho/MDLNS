@@ -155,6 +155,12 @@ FiniteLengthInt<nbits> FiniteLengthInt<nbits>::operator>>(const unsigned& n) {
 	return output;
 }
 
+template<unsigned nbits>
+inline std::ostream& operator<<(std::ostream& os, const FiniteLengthInt<nbits>& obj)
+{
+	os << obj.getVal();
+	return os;
+}
 
 void testEnsureValidity();
 void testOperators();

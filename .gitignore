@@ -3,3 +3,10 @@
 ################################################################################
 
 /x64/Debug
+/MDLNS/x64/Debug
+/.vs/MDLNS/v16/ipch/AutoPCH/d97716bf6b2bffee/TESTDBNS.ipch
+/.vs/MDLNS/v16/ipch/AutoPCH/aeac2eb463a86d7/DBNSEXCEPTION.ipch
+/.vs/MDLNS/v16/ipch/AutoPCH/ad44c150ea24acb0/MAIN.ipch
+/.vs/MDLNS/v16/Browse.VC.opendb
+/.vs/ProjectSettings.json
+/.vs/slnx.sqlite

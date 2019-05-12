@@ -10,7 +10,10 @@ int main()
     std::cout << "Hello World!\n"; 
 	//testEnsureValidity();
 	//testOperators();
-	testConvert();
+	//testConvert();
+	//testSetupTable();
+	//testPrintOpertor();
+	testProdOperator();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
