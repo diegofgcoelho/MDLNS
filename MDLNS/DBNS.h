@@ -20,6 +20,7 @@ public:
 	DBNS(bool sign, double base);
 	DBNS(bool sign, double base, int a, int b);
 	DBNS(bool sign, double base, FiniteLengthInt<nbits> a, FiniteLengthInt<nbits> b);
+	DBNS(const DBNS<nbits>& other);
 	~DBNS();
 	bool getSign() const;
 	void setSign(bool sign);
@@ -28,17 +29,25 @@ public:
 	double getBase() const;
 	void setBase(double base);
 	double convert();
-	std::map<std::tuple<int, int>, std::tuple<int, int>> getTablePlus();
-	std::map<std::tuple<int, int>, std::tuple<int, int>> getTableMinus();
-	void setTables(std::map<std::tuple<int, int>, std::tuple<int, int>> tablePlus, std::map<std::tuple<int, int>, std::tuple<int, int>> tableMinus);
-	DBNS<nbits> operator*(const DBNS<nbits>& other);
+	std::map<std::tuple<int, int>, std::tuple<int, int>> getTablePlus() const;
+	std::map<std::tuple<int, int>, std::tuple<int, int>> getTableMinus() const;
+	void setTables(const std::map<std::tuple<int, int>, std::tuple<int, int>> tablePlus, const std::map<std::tuple<int, int>, std::tuple<int, int>> tableMinus);
+	bool operator<(const DBNS<nbits>& other) const;
+	bool operator>(const DBNS<nbits>& other) const;
+	bool operator==(const DBNS<nbits>& other) const;
+	DBNS<nbits> operator*(const DBNS<nbits>& other) const;
+	DBNS<nbits> operator/(const DBNS<nbits>& other) const;
+	DBNS<nbits> operator+(const DBNS<nbits>& other) const;
+	DBNS<nbits> operator-(const DBNS<nbits>& other) const;
 private:
 	bool sign;
 	double base;
 	FiniteLengthInt<nbits> a, b;
 	std::map<std::tuple<int, int>, std::tuple<int, int>> tablePlus;
 	std::map<std::tuple<int, int>, std::tuple<int, int>> tableMinus;
-	void setupTables();
+	std::map<std::tuple<int, int>, int> tableSBD;
+	void setupTablesPlusAndMinus();
+	void setupTableSBD();
 };
 
 template <unsigned nbits>
@@ -48,7 +57,8 @@ DBNS<nbits>::DBNS()
 	this->a = 0;
 	this->b = 0;
 	this->base = 0.0;
-	this->setupTables();
+	this->setupTablesPlusAndMinus();
+	this->setupTableSBD();
 }
 
 template <unsigned nbits>
@@ -58,7 +68,8 @@ DBNS<nbits>::DBNS(double base)
 	this->a = 0;
 	this->b = 0;
 	this->base = base;
-	this->setupTables();
+	this->setupTablesPlusAndMinus();
+	this->setupTableSBD();
 }
 
 template <unsigned nbits>
@@ -68,7 +79,8 @@ DBNS<nbits>::DBNS(double base, int a, int b)
 	this->a = FiniteLengthInt<nbits>(a);
 	this->b = FiniteLengthInt<nbits>(b);
 	this->base = base;
-	this->setupTables();
+	this->setupTablesPlusAndMinus();
+	this->setupTableSBD();
 }
 
 template <unsigned nbits>
@@ -78,7 +90,8 @@ DBNS<nbits>::DBNS(double base, FiniteLengthInt<nbits> a, FiniteLengthInt<nbits> 
 	this->a = a;
 	this->b = b;
 	this->base = base;
-	this->setupTables();
+	this->setupTablesPlusAndMinus();
+	this->setupTableSBD();
 }
 
 template<unsigned nbits>
@@ -88,7 +101,8 @@ inline DBNS<nbits>::DBNS(bool sign, double base)
 	this->a = 0;
 	this->b = 0;
 	this->base = base;
-	this->setupTables();
+	this->setupTablesPlusAndMinus();
+	this->setupTableSBD();
 }
 
 template<unsigned nbits>
@@ -98,7 +112,8 @@ inline DBNS<nbits>::DBNS(bool sign, double base, int a, int b)
 	this->a = FiniteLengthInt<nbits>(a);
 	this->b = FiniteLengthInt<nbits>(b);
 	this->base = base;
-	this->setupTables();
+	this->setupTablesPlusAndMinus();
+	this->setupTableSBD();
 }
 
 template<unsigned nbits>
@@ -108,7 +123,20 @@ inline DBNS<nbits>::DBNS(bool sign, double base, FiniteLengthInt<nbits> a, Finit
 	this->a = a;
 	this->b = b;
 	this->base = base;
-	this->setupTables();
+	this->setupTablesPlusAndMinus();
+	this->setupTableSBD();
+}
+
+template<unsigned nbits>
+inline DBNS<nbits>::DBNS(const DBNS<nbits>& other)
+{
+	this->sign = other.sign;
+	this->a = other.a;
+	this->b = other.b;
+	this->base = other.base;
+	this->tablePlus = other.getTablePlus();
+	this->tableMinus = other.getTableMinus();
+	this->tableSBD = other.tableSBD;
 }
 
 template <unsigned nbits>
@@ -160,26 +188,50 @@ double DBNS<nbits>::convert()
 }
 
 template<unsigned nbits>
-inline std::map<std::tuple<int, int>, std::tuple<int, int>> DBNS<nbits>::getTablePlus()
+inline std::map<std::tuple<int, int>, std::tuple<int, int>> DBNS<nbits>::getTablePlus() const
 {
 	return this->tablePlus;
 }
 
 template<unsigned nbits>
-inline std::map<std::tuple<int, int>, std::tuple<int, int>> DBNS<nbits>::getTableMinus()
+inline std::map<std::tuple<int, int>, std::tuple<int, int>> DBNS<nbits>::getTableMinus() const
 {
 	return this->tableMinus;
 }
 
 template<unsigned nbits>
-inline void DBNS<nbits>::setTables(std::map<std::tuple<int, int>, std::tuple<int, int>> tablePlus, std::map<std::tuple<int, int>, std::tuple<int, int>> tableMinus)
+inline void DBNS<nbits>::setTables(const std::map<std::tuple<int, int>, std::tuple<int, int>> tablePlus, const std::map<std::tuple<int, int>, std::tuple<int, int>> tableMinus)
 {
 	this->tablePlus = tablePlus;
 	this->tableMinus = tableMinus;
 }
 
 template<unsigned nbits>
-inline DBNS<nbits> DBNS<nbits>::operator*(const DBNS<nbits>& other)
+inline bool DBNS<nbits>::operator<(const DBNS<nbits>& other) const
+{
+	int thisv = this->tableSBD.at(std::pair<int, int>(this->a.getVal(), this->b.getVal()));
+	int otherv = this->tableSBD.at(std::pair<int, int>(other.a.getVal(), other.b.getVal()));
+	return (thisv < otherv);
+}
+
+template<unsigned nbits>
+inline bool DBNS<nbits>::operator>(const DBNS<nbits>& other) const
+{
+	int thisv = this->tableSBD.at(std::pair<int, int>(this->a.getVal(), this->b.getVal()));
+	int otherv = this->tableSBD.at(std::pair<int, int>(other.a.getVal(), other.b.getVal()));
+	return (thisv > otherv);
+}
+
+template<unsigned nbits>
+inline bool DBNS<nbits>::operator==(const DBNS<nbits>& other) const
+{
+	int thisv = this->tableSBD.at(std::pair<int, int>(this->a.getVal(), this->b.getVal()));
+	int otherv = this->tableSBD.at(std::pair<int, int>(other.a.getVal(), other.b.getVal()));
+	return (thisv == otherv);
+}
+
+template<unsigned nbits>
+inline DBNS<nbits> DBNS<nbits>::operator*(const DBNS<nbits>& other) const
 {
 	if (this->base != other.base) {
 		throw DBNSException(this->base, other.base);
@@ -193,8 +245,96 @@ inline DBNS<nbits> DBNS<nbits>::operator*(const DBNS<nbits>& other)
 	}
 }
 
+template<unsigned nbits>
+inline DBNS<nbits> DBNS<nbits>::operator/(const DBNS<nbits>& other) const
+{
+	if (this->base != other.base) {
+		throw DBNSException(this->base, other.base);
+	}
+	else
+	{
+		bool sign = (this->sign && !other.sign) || (!this->sign && other.sign);
+		FiniteLengthInt<nbits> a = this->a - other.a;
+		FiniteLengthInt<nbits> b = this->b - other.b;
+		return DBNS<nbits>(sign, this->base, a, b);
+	}
+}
+
+template<unsigned nbits>
+inline DBNS<nbits> DBNS<nbits>::operator+(const DBNS<nbits>& other) const
+{
+
+	if (this->base != other.base) {
+		throw DBNSException(this->base, other.base);
+	}
+	else
+	{
+		if (this->sign == other.sign) {
+			const DBNS<nbits>* left = (*this > other) ? this : &other;
+			const DBNS<nbits>* right = (*this > other) ? &other : this;
+
+			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> leftExp = left->getExponents();
+			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> rightExp = right->getExponents();
+			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> addExp = std::make_tuple(std::get<0>(rightExp) + std::get<0>(leftExp), std::get<1>(rightExp) + std::get<1>(leftExp));
+
+			std::tuple<int, int> prod;
+			int first = std::get<0>(addExp).getVal();
+			int second = std::get<1>(addExp).getVal();
+			prod = this->tablePlus.at(std::make_tuple(first, second));
+
+			leftExp = std::make_tuple(std::get<0>(leftExp) + FiniteLengthInt<nbits>(std::get<0>(prod)), std::get<1>(leftExp) + FiniteLengthInt<nbits>(std::get<1>(prod)));
+			DBNS<nbits> result(this->sign, this->base, std::get<0>(leftExp), std::get<1>(leftExp));
+			return result;
+		}
+		else if (this->sign == true && other.sign == false) {
+			DBNS<nbits> subtractor(*this);
+			subtractor.setSign(false);
+			return other - subtractor;
+		}
+		//else if (this->sign == false && other.sign == true) {
+		else {
+			DBNS<nbits> subtractor(other);
+			subtractor.setSign(false);
+			return (*this) - subtractor;
+		}
+	}
+}
+
+template<unsigned nbits>
+inline DBNS<nbits> DBNS<nbits>::operator-(const DBNS<nbits>& other) const
+{
+
+	if (this->base != other.base) {
+		throw DBNSException(this->base, other.base);
+	}
+	else
+	{
+		if (this->sign == other.sign) {
+			const DBNS<nbits>* left = this;
+			const DBNS<nbits>* right = &other;
+
+			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> leftExp = left->getExponents();
+			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> rightExp = right->getExponents();
+			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> addExp = std::make_tuple(std::get<0>(rightExp) - std::get<0>(leftExp), std::get<1>(rightExp) - std::get<1>(leftExp));
+
+			std::tuple<int, int> prod;
+			prod = this->tableMinus.at(std::tuple<int, int>(std::get<0>(addExp).getVal(), std::get<1>(addExp).getVal()));
+
+			leftExp = std::make_tuple(std::get<0>(leftExp) + FiniteLengthInt<nbits>(std::get<0>(prod)), std::get<1>(leftExp) + FiniteLengthInt<nbits>(std::get<1>(prod)));
+			DBNS<nbits> result(this->sign, this->base, std::get<0>(leftExp), std::get<1>(leftExp));
+			return result;
+		}
+		//else if (this->sign != other.sign) {
+		else {
+			DBNS<nbits> adder(*this);
+			adder.setSign(!this->sign);
+			return other + adder;
+		}
+	}
+}
+
 template <unsigned nbits>
-void DBNS<nbits>::setupTables()
+void DBNS<nbits>::setupTablesPlusAndMinus()
 {
 	std::map<std::pair<int, int>, double> prodMap;
 	for (int x = -static_cast<int>(std::pow(2, nbits - 1)); x < static_cast<int>(std::pow(2, nbits - 1) - 1); x++) {
@@ -207,8 +347,8 @@ void DBNS<nbits>::setupTables()
 	//Searching for the most fitted correspondence
 	for (auto& p : prodMap) {
 		std::pair<int, int> cPhi, cPsi;
-		double phi = std::abs(1.0 + p.second);
-		double psi = std::abs(1.0 - p.second);
+		double phi = (1.0 + p.second);
+		double psi = (1.0 - p.second);
 		
 		double bestErrPhi = 10.0;
 		double bestErrPsi = 10.0;
@@ -231,6 +371,20 @@ void DBNS<nbits>::setupTables()
 }
 
 template<unsigned nbits>
+inline void DBNS<nbits>::setupTableSBD()
+{
+	std::map<std::tuple<int, int>, int> SBDMap;
+	for (int x = -static_cast<int>(std::pow(2, nbits - 1)); x < static_cast<int>(std::pow(2, nbits - 1) - 1); x++) {
+		for (int y = -static_cast<int>(std::pow(2, nbits - 1)); y < static_cast<int>(std::pow(2, nbits - 1) - 1); y++) {
+			double v = x + y * std::log2(this->base);
+			v = std::round(v * std::pow(2.0, nbits-1));
+			SBDMap[std::tuple<int, int>(x, y)] = FiniteLengthInt<2*nbits>(static_cast<int>(v)).getVal();
+		}
+	}
+	this->tableSBD = SBDMap;
+}
+
+template<unsigned nbits>
 inline std::ostream& operator<<(std::ostream& os, const DBNS<nbits>& obj)
 {
 	std::string sign_str;
@@ -244,3 +398,6 @@ void testConvert();
 void testSetupTable();
 void testPrintOpertor();
 void testProdOperator();
+void testDivOperator();
+void testAddOperator();
+void testSubOperator();

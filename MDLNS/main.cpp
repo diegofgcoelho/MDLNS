@@ -13,7 +13,10 @@ int main()
 	//testConvert();
 	//testSetupTable();
 	//testPrintOpertor();
-	testProdOperator();
+	//testProdOperator();
+	//testDivOperator();
+	testAddOperator();
+	//testSubOperator();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

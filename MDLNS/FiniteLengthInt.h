@@ -12,9 +12,9 @@ public:
 	FiniteLengthInt<nbits>& operator=(const FiniteLengthInt<nbits>& other);
 	FiniteLengthInt<nbits>& operator=(const int& other);
 	FiniteLengthInt<nbits>& operator=(const unsigned& other);
-	FiniteLengthInt<nbits> operator+(const FiniteLengthInt<nbits>& other);
-	FiniteLengthInt<nbits> operator-(const FiniteLengthInt<nbits>& other);
-	FiniteLengthInt<nbits> operator*(const FiniteLengthInt<nbits>& other);
+	FiniteLengthInt<nbits> operator+(const FiniteLengthInt<nbits>& other) const;
+	FiniteLengthInt<nbits> operator-(const FiniteLengthInt<nbits>& other) const;
+	FiniteLengthInt<nbits> operator*(const FiniteLengthInt<nbits>& other) const;
 	FiniteLengthInt<nbits> operator<<(const unsigned& n);
 	FiniteLengthInt<nbits> operator>>(const unsigned& n);
 private:
@@ -121,21 +121,21 @@ FiniteLengthInt<nbits>& FiniteLengthInt<nbits>::operator=(const unsigned& other)
 }
 
 template<unsigned nbits>
-FiniteLengthInt<nbits> FiniteLengthInt<nbits>::operator+(const FiniteLengthInt<nbits> & other) {
+FiniteLengthInt<nbits> FiniteLengthInt<nbits>::operator+(const FiniteLengthInt<nbits> & other) const {
 	FiniteLengthInt<nbits> output;
 	output.setVal(this->val + other.getVal());
 	return output;
 }
 
 template<unsigned nbits>
-FiniteLengthInt<nbits> FiniteLengthInt<nbits>::operator-(const FiniteLengthInt<nbits> & other) {
+FiniteLengthInt<nbits> FiniteLengthInt<nbits>::operator-(const FiniteLengthInt<nbits> & other) const {
 	FiniteLengthInt<nbits> output;
 	output.setVal(this->val - other.getVal());
 	return output;
 }
 
 template<unsigned nbits>
-FiniteLengthInt<nbits> FiniteLengthInt<nbits>::operator*(const FiniteLengthInt<nbits>& other) {
+FiniteLengthInt<nbits> FiniteLengthInt<nbits>::operator*(const FiniteLengthInt<nbits>& other) const {
 	FiniteLengthInt<nbits> output;
 	output.setVal(this->val * other.getVal());
 	return output;

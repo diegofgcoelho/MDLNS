@@ -57,3 +57,42 @@ void testProdOperator() {
 	z = x * y;
 	std::cout << " x = " << x << " , y =  " << y << " -> z = " << z << " - > diff = " << std::abs(z.convert()-x.convert()*y.convert()) << std::endl;
 }
+
+void testDivOperator() {
+	const unsigned nbits = 5;
+	FiniteLengthInt<nbits> a(25);
+	FiniteLengthInt<nbits> b(-37);
+	double base = 3.0;
+	DBNS<nbits> x(base, a, b);
+	DBNS<nbits> y(base, 1, 4);
+	DBNS<nbits> z(base, a, b);
+	z = x / y;
+	std::cout << " x = " << x << " , y =  " << y << " -> z = " << z << " - > diff = " << std::abs(z.convert() - x.convert() / y.convert()) << std::endl;
+}
+
+void testAddOperator() {
+	const unsigned nbits = 5;
+	FiniteLengthInt<nbits> a(25);
+	FiniteLengthInt<nbits> b(-37);
+	double base = 3.0;
+	DBNS<nbits> x(base, a, b);
+	DBNS<nbits> y(base, 1, 4);
+	DBNS<nbits> z(base, a, b);
+	z = x + y;
+	std::cout << " x = " << x << " , y =  " << y << " -> z = " << z << " - > add = " << std::abs(z.convert() - (x.convert() + y.convert())) << std::endl;
+	std::cout << "x.convert = " << x.convert() << std::endl;
+	std::cout << "y.convert = " << y.convert() << std::endl;
+	std::cout << "z.convert = " << z.convert() << std::endl;
+}
+
+void testSubOperator() {
+	const unsigned nbits = 5;
+	FiniteLengthInt<nbits> a(25);
+	FiniteLengthInt<nbits> b(-37);
+	double base = 3.0;
+	DBNS<nbits> x(base, a, b);
+	DBNS<nbits> y(base, 1, 4);
+	DBNS<nbits> z(base, a, b);
+	z = x - y;
+	std::cout << " x = " << x << " , y =  " << y << " -> z = " << z << " - > diff = " << std::abs(z.convert() - (x.convert() - y.convert())) << std::endl;
+}
