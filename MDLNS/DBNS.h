@@ -39,6 +39,8 @@ public:
 	DBNS<nbits> operator/(const DBNS<nbits>& other) const;
 	DBNS<nbits> operator+(const DBNS<nbits>& other) const;
 	DBNS<nbits> operator-(const DBNS<nbits>& other) const;
+	DBNS<nbits> operator-() const;
+	DBNS<nbits> abs() const;
 private:
 	bool sign;
 	double base;
@@ -184,7 +186,9 @@ void DBNS<nbits>::setBase(double base)
 template <unsigned nbits>
 double DBNS<nbits>::convert()
 {
-	return std::pow(2, this->a.getVal())* std::pow(this->base, this->b.getVal());
+	double mag = std::pow(2, this->a.getVal()) * std::pow(this->base, this->b.getVal());
+	double val = (this->sign == false) ? mag : -mag;
+	return val;
 }
 
 template<unsigned nbits>
@@ -209,17 +213,34 @@ inline void DBNS<nbits>::setTables(const std::map<std::tuple<int, int>, std::tup
 template<unsigned nbits>
 inline bool DBNS<nbits>::operator<(const DBNS<nbits>& other) const
 {
-	int thisv = this->tableSBD.at(std::pair<int, int>(this->a.getVal(), this->b.getVal()));
-	int otherv = this->tableSBD.at(std::pair<int, int>(other.a.getVal(), other.b.getVal()));
-	return (thisv < otherv);
+	if (this->sign == false && other.sign == true) {
+		return false;
+	}
+	else if (this->sign == true && other.sign == false) {
+		return true;
+	}
+	else {
+		int thisv = this->tableSBD.at(std::pair<int, int>(this->a.getVal(), this->b.getVal()));
+		int otherv = this->tableSBD.at(std::pair<int, int>(other.a.getVal(), other.b.getVal()));
+		return (thisv < otherv);
+	}
 }
+	
 
 template<unsigned nbits>
 inline bool DBNS<nbits>::operator>(const DBNS<nbits>& other) const
 {
-	int thisv = this->tableSBD.at(std::pair<int, int>(this->a.getVal(), this->b.getVal()));
-	int otherv = this->tableSBD.at(std::pair<int, int>(other.a.getVal(), other.b.getVal()));
-	return (thisv > otherv);
+	if (this->sign == false && other.sign == true) {
+		return true;
+	}
+	else if (this->sign == true && other.sign == false) {
+		return false;
+	}
+	else {
+		int thisv = this->tableSBD.at(std::pair<int, int>(this->a.getVal(), this->b.getVal()));
+		int otherv = this->tableSBD.at(std::pair<int, int>(other.a.getVal(), other.b.getVal()));
+		return (thisv > otherv);
+	}
 }
 
 template<unsigned nbits>
@@ -227,7 +248,7 @@ inline bool DBNS<nbits>::operator==(const DBNS<nbits>& other) const
 {
 	int thisv = this->tableSBD.at(std::pair<int, int>(this->a.getVal(), this->b.getVal()));
 	int otherv = this->tableSBD.at(std::pair<int, int>(other.a.getVal(), other.b.getVal()));
-	return (thisv == otherv);
+	return (thisv == otherv) && (this->sign == other.sign);
 }
 
 template<unsigned nbits>
@@ -269,10 +290,9 @@ inline DBNS<nbits> DBNS<nbits>::operator+(const DBNS<nbits>& other) const
 	}
 	else
 	{
+		const DBNS<nbits>* left = (this->abs() > other.abs()) ? this : &other;
+		const DBNS<nbits>* right = (this->abs() > other.abs()) ? &other : this;
 		if (this->sign == other.sign) {
-			const DBNS<nbits>* left = (*this > other) ? this : &other;
-			const DBNS<nbits>* right = (*this > other) ? &other : this;
-
 			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> leftExp = left->getExponents();
 			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> rightExp = right->getExponents();
 			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> addExp = std::make_tuple(std::get<0>(rightExp) + std::get<0>(leftExp), std::get<1>(rightExp) + std::get<1>(leftExp));
@@ -286,16 +306,9 @@ inline DBNS<nbits> DBNS<nbits>::operator+(const DBNS<nbits>& other) const
 			DBNS<nbits> result(this->sign, this->base, std::get<0>(leftExp), std::get<1>(leftExp));
 			return result;
 		}
-		else if (this->sign == true && other.sign == false) {
-			DBNS<nbits> subtractor(*this);
-			subtractor.setSign(false);
-			return other - subtractor;
-		}
-		//else if (this->sign == false && other.sign == true) {
 		else {
-			DBNS<nbits> subtractor(other);
-			subtractor.setSign(false);
-			return (*this) - subtractor;
+			DBNS<nbits> subtractor(!right->sign, right->base, right->a, right->b);
+			return (*left) - subtractor;
 		}
 	}
 }
@@ -309,10 +322,9 @@ inline DBNS<nbits> DBNS<nbits>::operator-(const DBNS<nbits>& other) const
 	}
 	else
 	{
+		const DBNS<nbits>* left = (this->abs() > other.abs()) ? this : &other;
+		const DBNS<nbits>* right = (this->abs() > other.abs()) ? &other : this;
 		if (this->sign == other.sign) {
-			const DBNS<nbits>* left = this;
-			const DBNS<nbits>* right = &other;
-
 			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> leftExp = left->getExponents();
 			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> rightExp = right->getExponents();
 			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> addExp = std::make_tuple(std::get<0>(rightExp) - std::get<0>(leftExp), std::get<1>(rightExp) - std::get<1>(leftExp));
@@ -324,13 +336,23 @@ inline DBNS<nbits> DBNS<nbits>::operator-(const DBNS<nbits>& other) const
 			DBNS<nbits> result(this->sign, this->base, std::get<0>(leftExp), std::get<1>(leftExp));
 			return result;
 		}
-		//else if (this->sign != other.sign) {
 		else {
-			DBNS<nbits> adder(*this);
-			adder.setSign(!this->sign);
-			return other + adder;
+			DBNS<nbits> adder(!right->sign, right->base, right->a, right->b);
+			return (*left) + adder;
 		}
 	}
+}
+
+template<unsigned nbits>
+inline DBNS<nbits> DBNS<nbits>::operator-() const
+{
+	return DBNS<nbits>(!this->sign, this->base, this->a, this->b);
+}
+
+template<unsigned nbits>
+inline DBNS<nbits> DBNS<nbits>::abs() const
+{
+	return DBNS<nbits>(false, this->base, this->a, this->b);
 }
 
 template <unsigned nbits>
@@ -388,7 +410,7 @@ template<unsigned nbits>
 inline std::ostream& operator<<(std::ostream& os, const DBNS<nbits>& obj)
 {
 	std::string sign_str;
-	sign_str = (obj.getSign() == true) ? "+" : "-";
+	sign_str = (obj.getSign() == false) ? "+" : "-";
 	std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> exponents = obj.getExponents();
 	os << sign_str << "2^(" << std::get<0>(exponents) << ")*" << obj.getBase() << "^(" << std::get<1>(exponents) << ")";
 	return os;
@@ -401,3 +423,4 @@ void testProdOperator();
 void testDivOperator();
 void testAddOperator();
 void testSubOperator();
+void testUnarySubOperator();

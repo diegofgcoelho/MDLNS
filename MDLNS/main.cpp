@@ -15,8 +15,9 @@ int main()
 	//testPrintOpertor();
 	//testProdOperator();
 	//testDivOperator();
-	testAddOperator();
+	//testAddOperator();
 	//testSubOperator();
+	testUnarySubOperator();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
