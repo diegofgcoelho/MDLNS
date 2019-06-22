@@ -106,17 +106,13 @@ FiniteLengthInt<nbits> & FiniteLengthInt<nbits>::operator=(const FiniteLengthInt
 
 template<unsigned nbits>
 FiniteLengthInt<nbits>& FiniteLengthInt<nbits>::operator=(const int& other) {
-	if (this != &other) {
-		this->setVal(other);
-	}
+	this->setVal(other);
 	return *this;
 }
 
 template<unsigned nbits>
 FiniteLengthInt<nbits>& FiniteLengthInt<nbits>::operator=(const unsigned& other) {
-	if (this != &other) {
-		this->setVal(other);
-	}
+	this->setVal(other);
 	return *this;
 }
 

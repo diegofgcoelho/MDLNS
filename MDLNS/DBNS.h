@@ -28,7 +28,8 @@ public:
 	void setExponents(std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> exponents);
 	double getBase() const;
 	void setBase(double base);
-	double convert();
+	double convert() const;
+	void convert(double number);
 	std::map<std::tuple<int, int>, std::tuple<int, int>> getTablePlus() const;
 	std::map<std::tuple<int, int>, std::tuple<int, int>> getTableMinus() const;
 	void setTables(const std::map<std::tuple<int, int>, std::tuple<int, int>> tablePlus, const std::map<std::tuple<int, int>, std::tuple<int, int>> tableMinus);
@@ -41,6 +42,7 @@ public:
 	DBNS<nbits> operator-(const DBNS<nbits>& other) const;
 	DBNS<nbits> operator-() const;
 	DBNS<nbits> abs() const;
+	DBNS<nbits> addSBD(const DBNS<nbits>& other) const;
 private:
 	bool sign;
 	double base;
@@ -184,11 +186,29 @@ void DBNS<nbits>::setBase(double base)
 }
 
 template <unsigned nbits>
-double DBNS<nbits>::convert()
+double DBNS<nbits>::convert() const
 {
 	double mag = std::pow(2, this->a.getVal()) * std::pow(this->base, this->b.getVal());
 	double val = (this->sign == false) ? mag : -mag;
 	return val;
+}
+
+template<unsigned nbits>
+inline void DBNS<nbits>::convert(double number)
+{
+	double err = std::numeric_limits<double>::max();
+	for (int x = -static_cast<int>(std::pow(2, nbits - 1)); x < static_cast<int>(std::pow(2, nbits - 1) - 1); x++) {
+		for (int y = -static_cast<int>(std::pow(2, nbits - 1)); y < static_cast<int>(std::pow(2, nbits - 1) - 1); y++) {
+			double prod = std::pow(2.0, x) * std::pow(this->base, y);
+			double diff = std::abs(prod - std::abs(number));
+			if (diff < err) {
+				this->a = FiniteLengthInt<nbits>(x);
+				this->b = FiniteLengthInt<nbits>(y);
+				err = diff;
+			}
+		}
+	}
+	if (number < 0) this->sign = true; else this->sign = false;
 }
 
 template<unsigned nbits>
@@ -355,6 +375,17 @@ inline DBNS<nbits> DBNS<nbits>::abs() const
 	return DBNS<nbits>(false, this->base, this->a, this->b);
 }
 
+template<unsigned nbits>
+inline DBNS<nbits> DBNS<nbits>::addSBD(const DBNS<nbits>& other) const
+{
+	int thisbinary = this->tableSBD.at(std::make_tuple(this->a.getVal(), this->b.getVal()));
+	int otherbinary = other.tableSBD.at(std::make_tuple(other.a.getVal(), other.b.getVal()));
+	double addresult = (this->sign == true ? -1.0 : 1.0)*std::pow(2.0, thisbinary) + (other.sign == true ? -1.0 : 1.0) * std::pow(2.0, otherbinary);
+	DBNS<nbits> r(this->base);
+	r.convert(addresult);
+	return r;
+}
+
 template <unsigned nbits>
 void DBNS<nbits>::setupTablesPlusAndMinus()
 {
@@ -399,7 +430,8 @@ inline void DBNS<nbits>::setupTableSBD()
 	for (int x = -static_cast<int>(std::pow(2, nbits - 1)); x < static_cast<int>(std::pow(2, nbits - 1) - 1); x++) {
 		for (int y = -static_cast<int>(std::pow(2, nbits - 1)); y < static_cast<int>(std::pow(2, nbits - 1) - 1); y++) {
 			double v = x + y * std::log2(this->base);
-			v = std::round(v * std::pow(2.0, nbits-1));
+			//v = std::round(v * std::pow(2.0, nbits-1));
+			v = std::round(v);
 			SBDMap[std::tuple<int, int>(x, y)] = FiniteLengthInt<2*nbits>(static_cast<int>(v)).getVal();
 		}
 	}
@@ -424,3 +456,5 @@ void testDivOperator();
 void testAddOperator();
 void testSubOperator();
 void testUnarySubOperator();
+void testConvertFromNumber();
+void testAddSBD();

@@ -17,7 +17,9 @@ int main()
 	//testDivOperator();
 	//testAddOperator();
 	//testSubOperator();
-	testUnarySubOperator();
+	//testUnarySubOperator();
+	//testConvertFromNumber();
+	testAddSBD();
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu

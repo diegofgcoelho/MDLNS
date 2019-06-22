@@ -117,3 +117,31 @@ void testUnarySubOperator() {
 	std::cout << "z.convert = " << z.convert() << std::endl;
 }
 
+void testConvertFromNumber() {
+	const unsigned nbits = 5;
+	FiniteLengthInt<nbits> a(2);
+	FiniteLengthInt<nbits> b(-3);
+	double base = 3.0;
+	DBNS<nbits> x(base, a, b);
+	DBNS<nbits> y(base, 0, 0);
+	double number = std::pow(2, a.getVal()) * std::pow(base, b.getVal());
+	y.convert(number);
+	std::cout << "DBNS with " << nbits << " bits and base " << base << " with exponents (" << a.getVal() << ", " << b.getVal() << ") = " << x.convert() << std::endl;
+	std::cout << "Converting from double = " << number << " with base " << y.getBase() << " with exponents (" << std::get<0>(y.getExponents()) << ", " << std::get<1>(y.getExponents()) << ") = " << y.convert() << std::endl;
+}
+
+void testAddSBD() {
+	const unsigned nbits = 5;
+	FiniteLengthInt<nbits> a(25);
+	FiniteLengthInt<nbits> b(-37);
+	double base = 3.0;
+	DBNS<nbits> x(base, a, b);
+	DBNS<nbits> y(base, 1, 4);
+	DBNS<nbits> z(base, a, b);
+	z = x.addSBD(y);
+	std::cout << " x = " << x << " , y =  " << y << " -> z = " << z << " - > add = " << std::abs(z.convert() - (x.convert() + y.convert())) << std::endl;
+	std::cout << "x.convert = " << x.convert() << std::endl;
+	std::cout << "y.convert = " << y.convert() << std::endl;
+	std::cout << "z.convert = " << z.convert() << std::endl;
+
+}
