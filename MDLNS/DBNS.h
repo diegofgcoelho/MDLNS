@@ -43,6 +43,7 @@ public:
 	DBNS<nbits> operator-() const;
 	DBNS<nbits> abs() const;
 	DBNS<nbits> addSBD(const DBNS<nbits>& other) const;
+	DBNS<nbits>& operator=(const DBNS<nbits>& other);
 private:
 	bool sign;
 	double base;
@@ -315,7 +316,7 @@ inline DBNS<nbits> DBNS<nbits>::operator+(const DBNS<nbits>& other) const
 		if (this->sign == other.sign) {
 			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> leftExp = left->getExponents();
 			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> rightExp = right->getExponents();
-			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> addExp = std::make_tuple(std::get<0>(rightExp) + std::get<0>(leftExp), std::get<1>(rightExp) + std::get<1>(leftExp));
+			std::tuple<FiniteLengthInt<nbits>, FiniteLengthInt<nbits>> addExp = std::make_tuple(std::get<0>(rightExp) - std::get<0>(leftExp), std::get<1>(rightExp) - std::get<1>(leftExp));
 
 			std::tuple<int, int> prod;
 			int first = std::get<0>(addExp).getVal();
@@ -386,12 +387,28 @@ inline DBNS<nbits> DBNS<nbits>::addSBD(const DBNS<nbits>& other) const
 	return r;
 }
 
+template<unsigned nbits>
+inline DBNS<nbits>& DBNS<nbits>::operator=(const DBNS<nbits>& other)
+{
+	if (this != &other) {
+		this->sign = other.sign;
+		this->base = other.base;
+		this->a = other.a;
+		this->b = other.b;
+		this->tablePlus = other.tablePlus;
+		this->tableMinus = other.tableMinus;
+		this->tableSBD = other.tableSBD;
+	}
+
+	return *this;
+}
+
 template <unsigned nbits>
 void DBNS<nbits>::setupTablesPlusAndMinus()
 {
 	std::map<std::pair<int, int>, double> prodMap;
-	for (int x = -static_cast<int>(std::pow(2, nbits - 1)); x < static_cast<int>(std::pow(2, nbits - 1) - 1); x++) {
-		for (int y = -static_cast<int>(std::pow(2, nbits - 1)); y < static_cast<int>(std::pow(2, nbits - 1) - 1); y++) {
+	for (int x = -static_cast<int>(std::pow(2, nbits - 1)); x < static_cast<int>(std::pow(2, nbits - 1)); x++) {
+		for (int y = -static_cast<int>(std::pow(2, nbits - 1)); y < static_cast<int>(std::pow(2, nbits - 1)); y++) {
 			double prod = std::pow(2, x) * std::pow(this->base, y);
 			prodMap[std::pair<int, int>(x, y)] = prod;
 		}
@@ -427,8 +444,8 @@ template<unsigned nbits>
 inline void DBNS<nbits>::setupTableSBD()
 {
 	std::map<std::tuple<int, int>, int> SBDMap;
-	for (int x = -static_cast<int>(std::pow(2, nbits - 1)); x < static_cast<int>(std::pow(2, nbits - 1) - 1); x++) {
-		for (int y = -static_cast<int>(std::pow(2, nbits - 1)); y < static_cast<int>(std::pow(2, nbits - 1) - 1); y++) {
+	for (int x = -static_cast<int>(std::pow(2, nbits - 1)); x < static_cast<int>(std::pow(2, nbits - 1)); x++) {
+		for (int y = -static_cast<int>(std::pow(2, nbits - 1)); y < static_cast<int>(std::pow(2, nbits - 1)); y++) {
 			double v = x + y * std::log2(this->base);
 			//v = std::round(v * std::pow(2.0, nbits-1));
 			v = std::round(v);

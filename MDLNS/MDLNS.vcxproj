@@ -126,6 +126,8 @@
     <ClInclude Include="DBNS.h" />
     <ClInclude Include="DBNSException.h" />
     <ClInclude Include="FiniteLengthInt.h" />
+    <ClInclude Include="Matrix.h" />
+    <ClInclude Include="MDLNSLookupTables.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DBNSException.cpp" />
